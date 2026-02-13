@@ -5,17 +5,26 @@ from streamlit.components.v1 import html
 # Configuration
 st.set_page_config(page_title="Volume Master", page_icon="🏠")
 
-# Initialisation de la session (Historique et Compteur pour vider les champs)
+# Initialisation de la session
 if "historique" not in st.session_state:
     st.session_state.historique = []
 if "compteur_reset" not in st.session_state:
     st.session_state.compteur_reset = 0
 
-# --- SCRIPT JAVASCRIPT (Navigation Entrée + Auto-Focus) ---
+# --- SCRIPT JAVASCRIPT (Navigation + Auto-Vider au clic) ---
 js_nav = """
 <script>
     const inputs = window.parent.document.querySelectorAll('input[type="number"]');
+    
     inputs.forEach((input, index) => {
+        // 1. VIDE LE CHAMP SI C'EST ZERO AU CLIC
+        input.addEventListener('focus', (e) => {
+            if (parseFloat(e.target.value) === 0) {
+                e.target.value = '';
+            }
+        });
+
+        // 2. NAVIGATION AVEC TOUCHE ENTREE
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -29,8 +38,6 @@ js_nav = """
             }
         });
     });
-    // Focus sur le premier champ au chargement
-    if(inputs[0]) inputs[0].focus();
 </script>
 """
 
@@ -52,35 +59,32 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# Injection du JS
 html(js_nav, height=0)
 
 st.markdown("<h1>🏠 Volume Master Pro</h1>", unsafe_allow_html=True)
 
-# --- CHAMPS DE SAISIE (Utilisation du compteur pour le Reset) ---
+# --- CHAMPS DE SAISIE ---
 c = st.session_state.compteur_reset
-L = st.number_input("📏 Longueur (m)", min_value=0.0, format="%.2f", key=f"L_{c}")
-l = st.number_input("↔️ Largeur (m)", min_value=0.0, format="%.2f", key=f"l_{c}")
-h = st.number_input("⬆️ Hauteur (m)", min_value=0.0, format="%.2f", key=f"h_{c}")
+L = st.number_input("📏 Longueur (m)", min_value=0.0, format="%.2f", key=f"L_{c}", value=0.0)
+l = st.number_input("↔️ Largeur (m)", min_value=0.0, format="%.2f", key=f"l_{c}", value=0.0)
+h = st.number_input("⬆️ Hauteur (m)", min_value=0.0, format="%.2f", key=f"h_{c}", value=0.0)
 
 if st.button("🚀 CALCULER ET VIDER", type="primary"):
     if L > 0 and l > 0 and h > 0:
         volume = float(L) * float(l) * float(h)
         st.balloons() 
         
-        # Sauvegarde résultat temporaire pour l'affichage avant le reset
         st.session_state.dernier_vol = volume
-        
-        # Mise à jour historique
         st.session_state.historique.insert(0, f"{L}m x {l}m x {h}m = {volume:.2f} m³")
         st.session_state.historique = st.session_state.historique[:5]
         
-        # INCORPORER LE RESET : On change le compteur pour vider les champs
         st.session_state.compteur_reset += 1
-        st.rerun() # Relance l'app pour appliquer le vidage
+        st.rerun()
     else:
         st.error("⚠️ Saisie incomplète.")
 
-# --- AFFICHAGE DU RÉSULTAT APRÈS RELANCE ---
+# --- AFFICHAGE RÉSULTAT ---
 if "dernier_vol" in st.session_state:
     vol = st.session_state.dernier_vol
     st.markdown(f"""
@@ -90,7 +94,6 @@ if "dernier_vol" in st.session_state:
         </div>
         """, unsafe_allow_html=True)
     
-    # Bouton WhatsApp
     msg = urllib.parse.quote(f"Volume calculé : {vol:.2f} m³ 🏠")
     st.markdown(f'<a href="https://wa.me{msg}" target="_blank" class="whatsapp-btn">📲 Partager sur WhatsApp</a>', unsafe_allow_html=True)
 

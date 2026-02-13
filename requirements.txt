@@ -1,3 +1,2 @@
 streamlit
-customtkinter
-Pillow
+streamlit-confetti

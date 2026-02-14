@@ -17,7 +17,7 @@ st.markdown("""
     h1 { background: linear-gradient(90deg, #00C9FF, #92FE9D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; font-weight: bold; }
     .stNumberInput label { color: #ecf0f1 !important; }
     div[data-baseweb="input"] { border-radius: 15px !important; background-color: #1e1e1e !important; }
-    input { color: white !important; }
+    input { color: blue !important; }
     /* Style du bouton */
     .stButton>button {
         width: 100%; border-radius: 50px; height: 3em;
